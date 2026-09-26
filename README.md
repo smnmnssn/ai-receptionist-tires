@@ -21,7 +21,7 @@ The demo company ("Svenssons Däck & Bil") is fictional.
 
 ## Requirements
 
-- Node.js `>=20.19.0` (developed on 20.19.4)
+- Node.js `>=20.19.0 <25` (production runs 24.x on Vercel; also verified locally on 20.19.4)
 - npm (exact versions are enforced via `.npmrc` → `save-exact=true`; commit `package-lock.json`)
 
 ## Setup
@@ -126,6 +126,28 @@ current time.
 `invalidFields` (names only) is present for validation failures. Other statuses: `400` malformed
 JSON / not a `tool-calls` message, `401` auth, `500` server env misconfigured.
 
+## Deployment (Vercel)
+
+- Git-connected Vercel project, framework preset **Next.js**, default build/install commands.
+  No `vercel.json` is needed.
+- Node.js: `engines.node` is `>=20.19.0 <25`, which Vercel maps to the latest **24.x**.
+- Set the five required variables under **Settings → Environment Variables** for the
+  **Production** environment, marked **Sensitive**, then redeploy (env changes only apply to new
+  deployments). Preview deployments intentionally have no secrets; their tool endpoints return 500.
+- Use the production domain (`https://<project>.vercel.app`) for Vapi. Per-deployment URLs are
+  behind Vercel Deployment Protection; don't disable it.
+
+Smoke test a deployment (reads the token from `.env.local`, never prints it):
+
+```bash
+node --env-file=.env.local scripts/smoke-test.mjs https://<project>.vercel.app
+# optional: also send ONE marked test email to BOOKING_NOTIFICATION_EMAIL, twice with the same toolCallId
+node --env-file=.env.local scripts/smoke-test.mjs https://<project>.vercel.app --send-test-email
+```
+
+Default checks never send email: health, 401 without/with wrong auth, 400 for malformed
+requests, and a Vapi `results[].error` for invalid arguments on both tool endpoints.
+
 ## Repository structure
 
 ```text
@@ -138,6 +160,7 @@ src/lib/normalization/   registration-number normalization
 src/lib/vapi/            auth, tool-call envelope parsing, response formatting, shared tool pipeline
 src/schemas/             Zod schemas for tool input (+ shared field helpers)
 src/types/               domain types (BookingRequest, CallbackRequest, CompanyConfig)
+scripts/smoke-test.mjs   deployed-backend smoke test
 tests/                   Vitest tests
 ```
 

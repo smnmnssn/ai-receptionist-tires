@@ -4,7 +4,7 @@
   "private": true,
   "description": "V0 backend for a Swedish-speaking AI phone receptionist for tire shops (Vapi tools + Resend email).",
   "engines": {
-    "node": ">=20.19.0"
+    "node": ">=20.19.0 <25"
   },
   "scripts": {
     "dev": "next dev",
