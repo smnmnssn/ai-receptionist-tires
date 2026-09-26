@@ -14,7 +14,7 @@ The demo company ("Svenssons Däck & Bil") is fictional.
 | Milestone | State |
 |---|---|
 | 1 — Repository foundation | Done |
-| 2 — Domain layer | Not started |
+| 2 — Domain layer | Done |
 | 3–10 | Not started |
 
 ## Requirements
@@ -85,13 +85,13 @@ Locally use `.env.local`; on Vercel use encrypted environment variables. No secr
 ```text
 prompts/                 canonical agent prompt (added in a later milestone)
 src/app/api/             Next.js route handlers (no frontend in V0)
-src/config/              demo company config (Milestone 2)
+src/config/company.ts    fictional demo company (approved facts only)
 src/lib/env.ts           server env validation
 src/lib/email/           Resend wrapper + templates (Milestone 3)
-src/lib/normalization/   registration-number normalization (Milestone 2)
+src/lib/normalization/   registration-number normalization
 src/lib/vapi/            auth, tool-call parsing, responses (Milestone 4)
-src/schemas/             Zod schemas (Milestone 2)
-src/types/               domain types (Milestone 2)
+src/schemas/             Zod schemas for tool input (+ shared field helpers)
+src/types/               domain types (BookingRequest, CallbackRequest, CompanyConfig)
 tests/                   Vitest tests
 ```
 
