@@ -16,7 +16,8 @@ The demo company ("Svenssons Däck & Bil") is fictional.
 | 1 — Repository foundation | Done |
 | 2 — Domain layer | Done |
 | 3 — Email layer | Done |
-| 4–10 | Not started |
+| 4 — Vapi tool endpoints | Done |
+| 5–10 | Not started |
 
 ## Requirements
 
@@ -77,8 +78,8 @@ Locally use `.env.local`; on Vercel use encrypted environment variables. No secr
 | Route | Status |
 |---|---|
 | `GET /api/health` → `{ "ok": true }` | Implemented |
-| `POST /api/vapi/tools/booking-request` | Milestone 4 |
-| `POST /api/vapi/tools/callback-request` | Milestone 4 |
+| `POST /api/vapi/tools/booking-request` (tool `submit_booking_request`) | Implemented |
+| `POST /api/vapi/tools/callback-request` (tool `submit_callback_request`) | Implemented |
 | `POST /api/vapi/events` | Later milestone |
 
 ## Workshop email
@@ -89,6 +90,42 @@ same key and cannot create a duplicate email. The email time must come from the 
 `new Date()`) so a retry renders an identical payload. Missing optional fields are shown as
 "Ej angivet" rather than guessed. Resend idempotency keys are honoured for 24 hours.
 
+## Vapi tool contract
+
+Pipeline per request: bearer auth → envelope parsing → Zod validation → registration-number
+normalization → Resend email → Vapi result.
+
+**Auth.** Configure a Vapi *Bearer Token* credential (header `Authorization`, Bearer prefix on)
+with the value of `VAPI_WEBHOOK_TOKEN`, and attach it to both tools' server. Missing/invalid auth
+returns `401` before the body is read.
+
+**Request** (Vapi `ServerMessageToolCalls`):
+
+```json
+{ "message": { "type": "tool-calls",
+  "call": { "id": "...", "createdAt": "2026-09-25T16:43:00.000Z" },
+  "toolCallList": [ { "id": "call_abc", "type": "function",
+    "function": { "name": "submit_booking_request", "arguments": "{\"customerName\":\"...\"}" } } ] } }
+```
+
+`arguments` may be a JSON string or an object; the flat `{ id, name, parameters }` shape is also
+accepted. The email's call time comes from `call.createdAt` (fallback `call.startedAt`, then
+`message.timestamp`) so retries are identical; if none exists the tool fails rather than using the
+current time.
+
+**Response** — always HTTP 200 once a tool call can be identified:
+
+```json
+{ "results": [ { "name": "submit_booking_request", "toolCallId": "call_abc",
+  "result": "{\"success\":true,\"message\":\"Booking request submitted successfully.\"}" } ] }
+
+{ "results": [ { "name": "submit_booking_request", "toolCallId": "call_abc",
+  "error": "{\"success\":false,\"message\":\"Could not submit the request.\",\"invalidFields\":[\"phone\"]}" } ] }
+```
+
+`invalidFields` (names only) is present for validation failures. Other statuses: `400` malformed
+JSON / not a `tool-calls` message, `401` auth, `500` server env misconfigured.
+
 ## Repository structure
 
 ```text
@@ -98,7 +135,7 @@ src/config/company.ts    fictional demo company (approved facts only)
 src/lib/env.ts           server env validation
 src/lib/email/           Resend wrapper (only file importing `resend`) + Swedish templates
 src/lib/normalization/   registration-number normalization
-src/lib/vapi/            auth, tool-call parsing, responses (Milestone 4)
+src/lib/vapi/            auth, tool-call envelope parsing, response formatting, shared tool pipeline
 src/schemas/             Zod schemas for tool input (+ shared field helpers)
 src/types/               domain types (BookingRequest, CallbackRequest, CompanyConfig)
 tests/                   Vitest tests

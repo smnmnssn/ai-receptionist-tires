@@ -10,3 +10,9 @@ const SEPARATORS = /[\s\-‐‑‒–—]/g;
 export function normalizeRegistrationNumber(value: string): string {
   return value.replace(SEPARATORS, "").toUpperCase();
 }
+
+/** For optional fields: a value that is only separators becomes "not provided". */
+export function normalizeOptionalRegistrationNumber(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return normalizeRegistrationNumber(value) || undefined;
+}
