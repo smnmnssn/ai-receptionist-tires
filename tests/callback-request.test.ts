@@ -59,6 +59,26 @@ describe("callbackRequestSchema", () => {
     expect(callbackRequestSchema.safeParse({ ...validCallback, phone: null }).success).toBe(false);
   });
 
+  it.each([
+    ["unresolved caller-ID placeholder", "{{customer.number}}"],
+    ["arbitrary text", "samma nummer som jag ringer från"],
+    ["too short", "123"],
+  ])("rejects an invalid phone: %s", (_label, phone) => {
+    const result = callbackRequestSchema.safeParse({ ...validCallback, phone });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(["phone"]);
+  });
+
+  it("accepts a plausible phone and strips separators", () => {
+    expect(callbackRequestSchema.parse({ ...validCallback, phone: "070-987 65 43" }).phone).toBe(
+      "0709876543",
+    );
+    expect(callbackRequestSchema.parse({ ...validCallback, phone: "+46709876543" }).phone).toBe(
+      "+46709876543",
+    );
+  });
+
   it("rejects a missing or blank reason", () => {
     const { reason: _omitted, ...withoutReason } = validCallback;
     void _omitted;
@@ -139,6 +159,14 @@ describe("POST /api/vapi/tools/callback-request", () => {
     void _omitted;
 
     const response = await post(body(withoutPhone));
+
+    const [result] = (await response.json()).results;
+    expect(JSON.parse(result.error).invalidFields).toEqual(["phone"]);
+    expect(sendCallbackMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unresolved caller-ID placeholder as phone without sending email", async () => {
+    const response = await post(body({ ...callbackArgs, phone: "{{customer.number}}" }));
 
     const [result] = (await response.json()).results;
     expect(JSON.parse(result.error).invalidFields).toEqual(["phone"]);

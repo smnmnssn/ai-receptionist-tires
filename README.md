@@ -158,7 +158,7 @@ dashboard are overwritten by the next sync.
 | File | Contents |
 |---|---|
 | `prompts/tire-shop-agent-v0.md` | Canonical system prompt (uses Vapi's `{{"now"}}` and `{{customer.number}}` variables) |
-| `vapi/assistant.json` | Assistant: Deepgram `nova-3` `sv-SE`, OpenAI `gpt-5.6-luna`, ElevenLabs `eleven_flash_v2_5`, recording off |
+| `vapi/assistant.json` | Assistant: Deepgram `nova-3` `sv-SE`, OpenAI `gpt-5.6-luna` (temperature 0.2), ElevenLabs `eleven_flash_v2_5`, recording off |
 | `vapi/tools/*.json` | `submit_booking_request`, `submit_callback_request` function definitions |
 
 ```bash

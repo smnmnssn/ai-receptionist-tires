@@ -24,6 +24,9 @@ export type BookingRequest = {
 
   preferredDate?: string;
 
+  /** Exact wished time as the caller stated it, e.g. "14:00". A preference only. */
+  preferredTime?: string;
+
   preferredTimeOfDay?: PreferredTimeOfDay;
 
   tiresStoredAtShop?: boolean;

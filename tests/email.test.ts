@@ -135,6 +135,22 @@ describe("booking email template", () => {
     expect(email.html).not.toContain("undefined");
   });
 
+  it("renders an exact preferred time together with day and time of day", () => {
+    const email = renderBookingRequestEmail({ ...booking, preferredTime: "14:00" }, callTime);
+
+    expect(email.text).toContain("Önskemål:\nTorsdag, 14:00 (eftermiddag)");
+    expect(email.html).toContain("Torsdag, 14:00 (eftermiddag)");
+  });
+
+  it("renders an exact preferred time on its own without inventing a day", () => {
+    const email = renderBookingRequestEmail(
+      { ...minimalBooking, preferredTime: "08:30" },
+      callTime,
+    );
+
+    expect(email.text).toContain("Önskemål:\n08:30");
+  });
+
   it("renders an explicit false as Nej", () => {
     const email = renderBookingRequestEmail({ ...booking, tiresStoredAtShop: false }, callTime);
     expect(email.text).toContain("Däck på däckhotell:\nNej");

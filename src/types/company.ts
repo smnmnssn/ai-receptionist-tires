@@ -13,7 +13,10 @@ export type Weekday =
  */
 export type CompanyConfig = {
   id: string;
+  /** Display/written name, e.g. in emails. */
   name: string;
+  /** How the assistant says the name aloud. TTS mispronounces "&", so write it out. */
+  spokenName: string;
   phone: string;
   address: string;
 

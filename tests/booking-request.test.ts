@@ -40,7 +40,29 @@ describe("bookingRequestSchema", () => {
     const result = bookingRequestSchema.safeParse(validBooking);
 
     expect(result.success).toBe(true);
-    expect(result.data).toEqual(validBooking);
+    // Phone separators are stripped; everything else is unchanged.
+    expect(result.data).toEqual({ ...validBooking, phone: "0701234567" });
+  });
+
+  it("accepts preferredTime alongside preferredTimeOfDay", () => {
+    const result = bookingRequestSchema.parse({
+      ...validBooking,
+      preferredTime: " 14:00 ",
+      preferredTimeOfDay: "AFTERNOON",
+    });
+
+    expect(result.preferredTime).toBe("14:00");
+    expect(result.preferredTimeOfDay).toBe("AFTERNOON");
+    expectTypeOf(result.preferredTime).toEqualTypeOf<string | undefined>();
+  });
+
+  it("treats preferredTime as optional and caps its length", () => {
+    expect(bookingRequestSchema.parse({ ...validBooking, preferredTime: null }).preferredTime).toBe(
+      undefined,
+    );
+    expect(
+      bookingRequestSchema.safeParse({ ...validBooking, preferredTime: "x".repeat(201) }).success,
+    ).toBe(false);
   });
 
   it("accepts a minimal booking request with only required fields", () => {
@@ -90,6 +112,32 @@ describe("bookingRequestSchema", () => {
     void _omitted;
 
     expect(bookingRequestSchema.safeParse(withoutPhone).success).toBe(false);
+  });
+
+  it.each([
+    ["unresolved caller-ID placeholder", "{{customer.number}}"],
+    ["template text with spaces", "{{ customer.number }}"],
+    ["arbitrary text", "ring mig"],
+    ["digits mixed with text", "070 tel 1234567"],
+    ["blank", "   "],
+    ["empty", ""],
+    ["too short", "12345"],
+    ["too long", "1234567890123456"],
+    ["plus in the middle", "070+1234567"],
+  ])("rejects an invalid phone: %s", (_label, phone) => {
+    const result = bookingRequestSchema.safeParse({ ...validBooking, phone });
+
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.path).toEqual(["phone"]);
+  });
+
+  it.each([
+    ["0701234567", "0701234567"],
+    ["070-123 45 67", "0701234567"],
+    ["+46701234567", "+46701234567"],
+    [" 031-00 00 00 ", "031000000"],
+  ])("accepts a plausible phone %j as %j", (phone, expected) => {
+    expect(bookingRequestSchema.parse({ ...validBooking, phone }).phone).toBe(expected);
   });
 
   it("rejects a service outside the strict enum", () => {
@@ -193,7 +241,30 @@ describe("POST /api/vapi/tools/booking-request", () => {
     const input = sendBookingMock.mock.calls[0][0];
     expect(input.toolCallId).toBe("call_abc123");
     expect(input.callTime).toEqual(new Date(CALL_CREATED_AT));
-    expect(input.request).toEqual({ ...bookingArgs, registrationNumber: "ABC123" });
+    expect(input.request).toEqual({
+      ...bookingArgs,
+      phone: "0701234567",
+      registrationNumber: "ABC123",
+    });
+  });
+
+  it("rejects an unresolved caller-ID placeholder as phone without sending email", async () => {
+    const response = await post(body({ ...bookingArgs, phone: "{{customer.number}}" }));
+
+    expect(response.status).toBe(200);
+    const [result] = (await response.json()).results;
+    expect(result).not.toHaveProperty("result");
+    expect(JSON.parse(result.error).invalidFields).toEqual(["phone"]);
+    expect(sendBookingMock).not.toHaveBeenCalled();
+  });
+
+  it("passes preferredTime through to the email layer", async () => {
+    await post(body({ ...bookingArgs, preferredTime: "14:00" }));
+
+    expect(sendBookingMock.mock.calls[0][0].request).toMatchObject({
+      preferredTime: "14:00",
+      preferredTimeOfDay: "AFTERNOON",
+    });
   });
 
   it("accepts arguments sent as a JSON string", async () => {

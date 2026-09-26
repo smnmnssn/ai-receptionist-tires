@@ -23,6 +23,24 @@ export function optionalText(max: number) {
   return z.preprocess(blankToUndefined, z.string().trim().max(max).optional());
 }
 
+/**
+ * 7–15 digits, optionally with a leading "+" (E.164 caller ID such as +46701234567).
+ * Deliberately not Swedish-specific. Rejects text, blanks and unresolved template
+ * placeholders such as "{{customer.number}}".
+ */
+export const PHONE_PATTERN = /^\+?[0-9]{7,15}$/;
+
+// Spaces and hyphens are separators the model often adds ("070-123 45 67").
+const PHONE_SEPARATORS = /[\s-]/g;
+
+export function phoneNumber() {
+  return z
+    .string()
+    .trim()
+    .transform((value) => value.replace(PHONE_SEPARATORS, ""))
+    .pipe(z.string().regex(PHONE_PATTERN));
+}
+
 export function optionalOf<T extends z.ZodType>(schema: T) {
   return z.preprocess(blankToUndefined, schema.optional());
 }

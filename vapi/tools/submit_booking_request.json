@@ -14,11 +14,12 @@
         },
         "phone": {
           "type": "string",
-          "description": "Confirmed phone number for the workshop to call back, digits only, e.g. 0701234567."
+          "pattern": "^\\+?[0-9]{7,15}$",
+          "description": "Confirmed phone number for the workshop to call back, digits only, e.g. 0701234567, or the caller ID exactly as shown if the caller chose it, e.g. +46701234567. Never template text or placeholders."
         },
         "registrationNumber": {
           "type": "string",
-          "description": "Vehicle registration number as confirmed, uppercase without spaces, e.g. ABC123. Omit if not relevant or not given."
+          "description": "Vehicle registration number exactly as read back to and confirmed by the caller, uppercase without spaces, e.g. ABC123. Omit if not relevant or not confirmed."
         },
         "service": {
           "type": "string",
@@ -31,7 +32,11 @@
         },
         "preferredDate": {
           "type": "string",
-          "description": "Preferred day as the caller said it; for relative days add the actual date, e.g. 'imorgon, fredag 2 oktober'. Omit if no preference."
+          "description": "Preferred day as the caller said it; for relative days add the actual date with digits, e.g. 'imorgon, fredag 2 oktober'. Omit if no preference."
+        },
+        "preferredTime": {
+          "type": "string",
+          "description": "Exact time the caller wished for, as 24-hour HH:MM, e.g. '14:00' for 'klockan två'. Only a wish, never confirmed. Omit if the caller gave no exact time."
         },
         "preferredTimeOfDay": {
           "type": "string",

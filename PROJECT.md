@@ -4,6 +4,15 @@
 > **Primary goal:** Build the smallest reliable end-to-end voice-agent demo that can validate willingness to use/pay.  
 > **Important:** This document is the source of truth for implementation. Do not expand scope unless the product owner explicitly changes this document.
 
+### Approved amendments
+
+- **2026-09-26 — Milestone 6 live-call corrections** (approved by the product owner after the first Vapi web call):
+  - `companyConfig.spokenName` ("Svenssons Däck och Bil") is used for everything spoken; `name` keeps "&" for display (§11).
+  - `BookingRequest.preferredTime` (optional exact time, e.g. "14:00") added alongside `preferredTimeOfDay` (§12.1, §13).
+  - `phone` must be a plausible digits-only number (§13).
+  - OpenAI model temperature is `0.2` (§22).
+  - Prompt: unresolved/missing caller ID is treated as unavailable; registration numbers are read back and confirmed; human/callback requests use one short confirmation; dates and times are spoken in words (§23).
+
 ---
 
 ## 0. Instructions to the coding agent
@@ -358,6 +367,9 @@ export const companyConfig = {
 
   name: "Svenssons Däck & Bil",
 
+  // Used for everything the assistant says aloud; TTS mispronounces "&".
+  spokenName: "Svenssons Däck och Bil",
+
   phone: "+46310000000",
 
   address: "Industrigatan 12, Göteborg",
@@ -421,6 +433,9 @@ export type BookingRequest = {
 
   preferredDate?: string;
 
+  // Exact wished time, e.g. "14:00". A preference only, never confirmed availability.
+  preferredTime?: string;
+
   preferredTimeOfDay?:
     | "MORNING"
     | "AFTERNOON"
@@ -455,14 +470,14 @@ At minimum:
 ### Booking request
 
 - `customerName`: non-empty string
-- `phone`: non-empty string
+- `phone`: plausible digits-only phone number (7–15 digits, optional leading `+`; spaces/hyphens are stripped first). Text and unresolved placeholders such as `{{customer.number}}` must fail.
 - `service`: strict enum
 - `description`: non-empty string
 - optional fields validated by type/enum
 
 ### Callback request
 
-- `phone`: non-empty string
+- `phone`: same phone rule as the booking request
 - `reason`: non-empty string
 - optional fields validated appropriately
 
@@ -774,6 +789,7 @@ language: sv-SE
 ```text
 provider: openai
 model: gpt-5.6-luna
+temperature: 0.2
 ```
 
 ## Voice

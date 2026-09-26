@@ -9,6 +9,8 @@ export const companyConfig = {
 
   name: "Svenssons Däck & Bil",
 
+  spokenName: "Svenssons Däck och Bil",
+
   phone: "+46310000000",
 
   address: "Industrigatan 12, Göteborg",

@@ -46,11 +46,15 @@ function formatYesNo(value: boolean | undefined): string {
   return value ? "Ja" : "Nej";
 }
 
+// e.g. "torsdag, 14:00 (eftermiddag)". Only what the caller said; nothing is derived.
 function formatPreference(request: BookingRequest): string {
-  const date = request.preferredDate;
   const timeOfDay = request.preferredTimeOfDay && TIME_OF_DAY_LABELS[request.preferredTimeOfDay];
-  if (date && timeOfDay) return `${date}, ${timeOfDay}`;
-  return date ?? timeOfDay ?? NOT_PROVIDED;
+  const time =
+    request.preferredTime && timeOfDay
+      ? `${request.preferredTime} (${timeOfDay})`
+      : (request.preferredTime ?? timeOfDay);
+  const parts = [request.preferredDate, time].filter(Boolean);
+  return parts.length > 0 ? parts.join(", ") : NOT_PROVIDED;
 }
 
 type Field = { label: string; value: string };
