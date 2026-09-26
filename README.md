@@ -15,7 +15,8 @@ The demo company ("Svenssons Däck & Bil") is fictional.
 |---|---|
 | 1 — Repository foundation | Done |
 | 2 — Domain layer | Done |
-| 3–10 | Not started |
+| 3 — Email layer | Done |
+| 4–10 | Not started |
 
 ## Requirements
 
@@ -80,6 +81,14 @@ Locally use `.env.local`; on Vercel use encrypted environment variables. No secr
 | `POST /api/vapi/tools/callback-request` | Milestone 4 |
 | `POST /api/vapi/events` | Later milestone |
 
+## Workshop email
+
+Each tool call sends one email to `BOOKING_NOTIFICATION_EMAIL` via Resend, using the idempotency key
+`booking-request/<toolCallId>` or `callback-request/<toolCallId>`. A retried tool call therefore reuses the
+same key and cannot create a duplicate email. The email time must come from the Vapi call (not
+`new Date()`) so a retry renders an identical payload. Missing optional fields are shown as
+"Ej angivet" rather than guessed. Resend idempotency keys are honoured for 24 hours.
+
 ## Repository structure
 
 ```text
@@ -87,7 +96,7 @@ prompts/                 canonical agent prompt (added in a later milestone)
 src/app/api/             Next.js route handlers (no frontend in V0)
 src/config/company.ts    fictional demo company (approved facts only)
 src/lib/env.ts           server env validation
-src/lib/email/           Resend wrapper + templates (Milestone 3)
+src/lib/email/           Resend wrapper (only file importing `resend`) + Swedish templates
 src/lib/normalization/   registration-number normalization
 src/lib/vapi/            auth, tool-call parsing, responses (Milestone 4)
 src/schemas/             Zod schemas for tool input (+ shared field helpers)
