@@ -17,7 +17,9 @@ The demo company ("Svenssons Däck & Bil") is fictional.
 | 2 — Domain layer | Done |
 | 3 — Email layer | Done |
 | 4 — Vapi tool endpoints | Done |
-| 5–10 | Not started |
+| 5 — Deploy backend | Done |
+| 6 — Configure Vapi | In progress |
+| 7–10 | Not started |
 
 ## Requirements
 
@@ -148,10 +150,32 @@ node --env-file=.env.local scripts/smoke-test.mjs https://<project>.vercel.app -
 Default checks never send email: health, 401 without/with wrong auth, 400 for malformed
 requests, and a Vapi `results[].error` for invalid arguments on both tool endpoints.
 
+## Vapi configuration
+
+The repository is the source of truth; edit here, then sync. Changes made only in the Vapi
+dashboard are overwritten by the next sync.
+
+| File | Contents |
+|---|---|
+| `prompts/tire-shop-agent-v0.md` | Canonical system prompt (uses Vapi's `{{"now"}}` and `{{customer.number}}` variables) |
+| `vapi/assistant.json` | Assistant: Deepgram `nova-3` `sv-SE`, OpenAI `gpt-5.6-luna`, ElevenLabs `eleven_flash_v2_5`, recording off |
+| `vapi/tools/*.json` | `submit_booking_request`, `submit_callback_request` function definitions |
+
+```bash
+node --env-file=.env.local scripts/vapi-sync.mjs --dry-run   # show payloads
+node --env-file=.env.local scripts/vapi-sync.mjs             # create/update tools + assistant
+```
+
+The script injects the tool server URLs (`APP_BASE_URL`), the Bearer credential
+(`VAPI_TOOL_CREDENTIAL_ID`) and the manually chosen voice (`VAPI_VOICE_ID`). Tests in
+`tests/vapi-config.test.ts` keep the prompt's company facts and the tool schemas in sync with
+`src/config/company.ts` and the Zod schemas.
+
 ## Repository structure
 
 ```text
-prompts/                 canonical agent prompt (added in a later milestone)
+prompts/                 canonical agent prompt
+vapi/                    Vapi assistant + tool definitions (synced by scripts/vapi-sync.mjs)
 src/app/api/             Next.js route handlers (no frontend in V0)
 src/config/company.ts    fictional demo company (approved facts only)
 src/lib/env.ts           server env validation

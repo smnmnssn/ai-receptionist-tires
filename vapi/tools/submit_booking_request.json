@@ -1,0 +1,57 @@
+{
+  "type": "function",
+  "async": false,
+  "messages": [{ "type": "request-start", "content": "Ett ögonblick." }],
+  "function": {
+    "name": "submit_booking_request",
+    "description": "Submit a caller-confirmed service/booking request to the workshop. Only call this after summarizing the important details and the caller has confirmed they are correct. This is a request, not a confirmed booking: the workshop will contact the caller to confirm a time.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "description": "The caller's name as confirmed."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Confirmed phone number for the workshop to call back, digits only, e.g. 0701234567."
+        },
+        "registrationNumber": {
+          "type": "string",
+          "description": "Vehicle registration number as confirmed, uppercase without spaces, e.g. ABC123. Omit if not relevant or not given."
+        },
+        "service": {
+          "type": "string",
+          "enum": ["TIRE_CHANGE", "TIRE_HOTEL", "PUNCTURE", "BALANCING", "NEW_TIRES", "OTHER"],
+          "description": "TIRE_CHANGE = däckskifte, TIRE_HOTEL = däckhotell, PUNCTURE = punktering, BALANCING = balansering/vibrationer, NEW_TIRES = köpa nya däck, OTHER = annat."
+        },
+        "description": {
+          "type": "string",
+          "description": "Short description of what the caller needs, in Swedish, based only on what the caller said."
+        },
+        "preferredDate": {
+          "type": "string",
+          "description": "Preferred day as the caller said it; for relative days add the actual date, e.g. 'imorgon, fredag 2 oktober'. Omit if no preference."
+        },
+        "preferredTimeOfDay": {
+          "type": "string",
+          "enum": ["MORNING", "AFTERNOON", "ANY"],
+          "description": "MORNING = förmiddag, AFTERNOON = eftermiddag, ANY = spelar ingen roll. Omit if not discussed."
+        },
+        "tiresStoredAtShop": {
+          "type": "boolean",
+          "description": "True if the caller's tires are stored at the shop's tire hotel, false if not. Omit if unknown."
+        },
+        "tireSize": {
+          "type": "string",
+          "description": "Tire size only if the caller stated it, e.g. '225/45 R18'."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Other relevant details the caller gave, e.g. car model. Omit if none."
+        }
+      },
+      "required": ["customerName", "phone", "service", "description"]
+    }
+  }
+}

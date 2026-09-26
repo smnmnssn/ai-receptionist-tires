@@ -1,0 +1,35 @@
+{
+  "type": "function",
+  "async": false,
+  "messages": [{ "type": "request-start", "content": "Ett ögonblick." }],
+  "function": {
+    "name": "submit_callback_request",
+    "description": "Ask the workshop to call the customer back when the AI cannot resolve the request or the caller wants human assistance. Only call this after confirming the phone number and reason with the caller.",
+    "parameters": {
+      "type": "object",
+      "properties": {
+        "customerName": {
+          "type": "string",
+          "description": "The caller's name, if given."
+        },
+        "phone": {
+          "type": "string",
+          "description": "Confirmed phone number for the workshop to call back, digits only, e.g. 0701234567."
+        },
+        "registrationNumber": {
+          "type": "string",
+          "description": "Vehicle registration number if given, uppercase without spaces, e.g. ABC123."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Why the caller wants to be called back, in Swedish, based only on what the caller said."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Other relevant details the caller gave. Omit if none."
+        }
+      },
+      "required": ["phone", "reason"]
+    }
+  }
+}

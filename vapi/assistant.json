@@ -1,0 +1,23 @@
+{
+  "name": "Svenssons Däck & Bil – demo",
+  "firstMessage": "Hej och välkommen till Svenssons Däck & Bil. Jag är deras digitala AI-assistent och hjälper till när personalen inte kan svara. Hur kan jag hjälpa dig?",
+  "firstMessageMode": "assistant-speaks-first",
+  "transcriber": {
+    "provider": "deepgram",
+    "model": "nova-3",
+    "language": "sv-SE"
+  },
+  "model": {
+    "provider": "openai",
+    "model": "gpt-5.6-luna"
+  },
+  "voice": {
+    "provider": "11labs",
+    "model": "eleven_flash_v2_5",
+    "language": "sv"
+  },
+  "backgroundSound": "off",
+  "artifactPlan": {
+    "recordingEnabled": false
+  }
+}
